@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flashcard dei verbi</title>
+<style>
+:root{
+  --bg:#f4efe4; --card:#fffdf7; --ink:#26241f; --muted:#6c675c; --line:#d9cfba;
+  --accent:#2f5d8a; --accent-soft:#e3ecf5; --orange:#b4531a; --orange-soft:#f8e7da;
+  --ok:#2e7d32; --ok-bg:#e6f3e7; --ko:#b3261e; --ko-bg:#fbe8e6; --warn:#8a6100; --warn-bg:#fbf1d6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;min-height:100vh;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+header{text-align:center;margin:8px 0 18px}
+header h1{font-size:1.8rem;margin:0;letter-spacing:.5px}
+header p{margin:4px 0 0;color:var(--muted);font-style:italic}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.92rem;color:var(--muted)}
+.linkbtn{background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.progress{height:8px;background:#e6dcc7;border-radius:6px;overflow:hidden;margin:8px 0 16px}
+.progress>div{height:100%;width:0;background:var(--accent);transition:width .25s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 24px 22px;box-shadow:0 2px 0 #e2d8c3,0 8px 24px rgba(60,40,10,.07);position:relative}
+.tag{display:inline-block;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.tag.an{background:var(--accent-soft);color:var(--accent)}
+.tag.co{background:var(--orange-soft);color:var(--orange)}
+.instr{margin:14px 0 6px;color:var(--muted);font-size:1rem}
+.prompt{font-size:2rem;font-weight:bold;margin:6px 0 10px;word-break:break-word}
+.prompt.verb{text-transform:uppercase;letter-spacing:2px;font-size:1.7rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.chip{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.9rem;background:#f3ecdc;border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+.chip b{color:var(--muted);font-weight:600;margin-right:4px}
+.answer{width:100%;font-family:inherit;font-size:1.35rem;padding:10px 4px 6px;border:none;border-bottom:2px solid #9b917c;background:repeating-linear-gradient(transparent,transparent 38px,transparent 38px);outline:none;color:var(--ink)}
+.answer:focus{border-bottom-color:var(--accent)}
+.accents{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.accents button{font-family:inherit;font-size:1rem;width:34px;height:30px;border:1px solid var(--line);background:#faf6ec;border-radius:6px;cursor:pointer}
+.accents button:hover{background:#efe6d2}
+.note{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.82rem;color:var(--muted);margin-top:8px}
+.feedback{margin-top:16px;border-radius:10px;padding:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.95rem}
+.feedback.ok{background:var(--ok-bg);border:1px solid #b9dcbb;padding:12px 14px}
+.feedback.ko{background:var(--ko-bg);border:1px solid #efc1bc;padding:12px 14px}
+.feedback.info{background:var(--warn-bg);border:1px solid #ecd9a3;padding:10px 14px}
+.feedback h3{margin:0 0 6px;font-size:1.05rem}
+.feedback.ok h3{color:var(--ok)} .feedback.ko h3{color:var(--ko)}
+.feedback ul{margin:4px 0 8px;padding-left:20px}
+.feedback .sol{margin-top:6px}
+.feedback .sol b{font-family:Georgia,serif;font-size:1.05rem}
+.y{color:var(--ok);font-weight:700}.n{color:var(--ko);font-weight:700}
+.buttons{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px;margin-top:16px}
+.buttons button,.sumbtns button{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1rem;font-weight:600;padding:12px 10px;border-radius:10px;border:1px solid #b9ae95;background:#fbf8f0;color:var(--ink);cursor:pointer}
+.buttons button:hover:not(:disabled),.sumbtns button:hover{background:#f0e8d6}
+.buttons button.primary,.sumbtns button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.buttons button.primary:hover{background:#264d73}
+.buttons button:disabled{opacity:.4;cursor:default}
+details.help{margin-top:18px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.9rem;background:#fbf7ee;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+details.help summary{cursor:pointer;font-weight:600}
+details.help li{margin:4px 0}
+/* riepilogo */
+#summary h2{margin:6px 0 12px;font-size:1.5rem}
+#summary h3{margin:26px 0 8px;font-size:1.15rem}
+.big{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.big div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.big .num{font-size:2rem;font-weight:bold}
+.big .lab{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.85rem;color:var(--muted)}
+.big .g .num{color:var(--ok)} .big .r .num{color:var(--ko)} .big .s .num{color:var(--warn)}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.9rem}
+th,td{padding:8px 10px;border-bottom:1px solid #eee5d3;text-align:center}
+th{background:#efe7d5;font-weight:600}
+td:first-child,th:first-child{text-align:left}
+.pbar{display:inline-block;width:70px;height:8px;background:#ece3cf;border-radius:4px;vertical-align:middle;margin-right:6px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent)}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.badge.g{background:var(--ok-bg);color:var(--ok)} .badge.r{background:var(--ko-bg);color:var(--ko)}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.verdict div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.92rem}
+.verdict h4{margin:0 0 6px;font-size:1rem}
+.verdict .vg h4{color:var(--ok)} .verdict .vr h4{color:var(--ko)}
+.verdict ul{margin:0;padding-left:18px}
+.errs{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.9rem}
+.errs li{margin:6px 0}
+.errs .given{color:var(--ko)}
+.sumbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+@media (max-width:560px){
+  .prompt{font-size:1.6rem}.prompt.verb{font-size:1.35rem}
+  .big .num{font-size:1.5rem}
+  .verdict{grid-template-columns:1fr}
+  .card{padding:20px 16px}
+}
+@media print{
+  body{background:#fff}
+  #quiz,.sumbtns{display:none!important}
+  .card,table,.big div,.verdict div{box-shadow:none}
+  details{display:block}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Flashcard dei verbi</h1>
+    <p>Analisi e coniugazione · ogni volta una serie diversa</p>
+  </header>
+
+  <section id="quiz">
+    <div class="top">
+      <span id="counter">Carta 1 di 200</span>
+      <button class="linkbtn" id="btnEnd">Termina e vedi il riepilogo</button>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+
+    <div class="card">
+      <span id="tag" class="tag"></span>
+      <div id="instr" class="instr"></div>
+      <div id="prompt" class="prompt"></div>
+      <div id="chips" class="chips"></div>
+      <input id="answer" class="answer" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="accents" id="accents"></div>
+      <div id="note" class="note"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div class="buttons">
+      <button id="btnPrev">◀ Indietro</button>
+      <button id="btnCheck" class="primary">Verifica</button>
+      <button id="btnNext">Avanti ▶</button>
+    </div>
+
+    <details class="help">
+      <summary>Come si risponde</summary>
+      <ul>
+        <li><b>Analizza</b>: scrivi modo, tempo e persona; per i verbi transitivi indica anche la diatesi (attiva o passiva). Esempio: <i>indicativo trapassato prossimo, 3ª persona plurale, passiva</i>. Puoi scrivere anche «3 plur», «terza plurale» o usare il pronome («loro»).</li>
+        <li>Se una voce ha più analisi possibili (es. <i>ami</i>), basta indicarne una corretta.</li>
+        <li><b>Coniuga</b>: scrivi la voce verbale richiesta. Il pronome personale (io, tu, lui…) e il «che» del congiuntivo si possono omettere. Nei verbi riflessivi il pronome riflessivo (mi, ti, si…) va invece scritto.</li>
+        <li>Nel passivo dei tempi semplici è accettato anche l’ausiliare <i>venire</i> (es. <i>viene letto</i>). Maschile e femminile sono entrambi accettati.</li>
+        <li>Gli accenti si possono scrivere anche con l’apostrofo (<i>parlo'</i> = <i>parlò</i>) o con i tasti sotto la riga.</li>
+        <li>Tasto <b>Invio</b>: verifica; premuto di nuovo dopo la verifica, passa alla carta successiva.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section id="summary" hidden></section>
+</div>
+
+<script>
+/* =====================================================================
+   MOTORE DI CONIUGAZIONE
+   ===================================================================== */
+const PERS = ['1ª persona singolare','2ª persona singolare','3ª persona singolare','1ª persona plurale','2ª persona plurale','3ª persona plurale'];
+const PRON_RIFL = ['mi','ti','si','ci','vi','si'];
+
+const END = {
+  1:{pres:['o','i','a','iamo','ate','ano'], impf:['avo','avi','ava','avamo','avate','avano'],
+     rem:['ai','asti','ò','ammo','aste','arono'], fut:['erò','erai','erà','eremo','erete','eranno'],
+     cpres:['i','i','i','iamo','iate','ino'], cimpf:['assi','assi','asse','assimo','aste','assero'],
+     cond:['erei','eresti','erebbe','eremmo','ereste','erebbero'], imp:[null,'a','i','iamo','ate','ino'],
+     ger:'ando', pp:'ato'},
+  2:{pres:['o','i','e','iamo','ete','ono'], impf:['evo','evi','eva','evamo','evate','evano'],
+     rem:['ei|etti','esti','é|ette','emmo','este','erono|ettero'], fut:['erò','erai','erà','eremo','erete','eranno'],
+     cpres:['a','a','a','iamo','iate','ano'], cimpf:['essi','essi','esse','essimo','este','essero'],
+     cond:['erei','eresti','erebbe','eremmo','ereste','erebbero'], imp:[null,'i','a','iamo','ete','ano'],
+     ger:'endo', pp:'uto'},
+  3:{pres:['o','i','e','iamo','ite','ono'], impf:['ivo','ivi','iva','ivamo','ivate','ivano'],
+     rem:['ii','isti','ì','immo','iste','irono'], fut:['irò','irai','irà','iremo','irete','iranno'],
+     cpres:['a','a','a','iamo','iate','ano'], cimpf:['issi','issi','isse','issimo','iste','issero'],
+     cond:['irei','iresti','irebbe','iremmo','ireste','irebbero'], imp:[null,'i','a','iamo','ite','ano'],
+     ger:'endo', pp:'ito'}
+};
+const ISC = {pres:['isco','isci','isce','iamo','ite','iscono'], cpres:['isca','isca','isca','iamo','iate','iscano'], imp:[null,'isci','isca','iamo','ite','iscano']};
+const FUT_SHORT = ['ò','ai','à','emo','ete','anno'];
+const COND_SHORT = ['ei','esti','ebbe','emmo','este','ebbero'];
+
+function V(inf, conj, stem, o){
+  const v = Object.assign({inf, conj, stem, aux:'avere', tr:false, refl:false}, o||{});
+  v.name = v.refl ? v.inf.slice(0,-1)+'si' : v.inf;
+  return v;
+}
+
+const VERBS = [
+  /* ---- ausiliari e irregolari ---- */
+  V('essere',2,'ess',{aux:'essere',
+    pres:['sono','sei','è','siamo','siete','sono'], impf:['ero','eri','era','eravamo','eravate','erano'],
+    rem:['fui','fosti','fu','fummo','foste','furono'], fut:['sarò','sarai','sarà','saremo','sarete','saranno'],
+    cpres:['sia','sia','sia','siamo','siate','siano'], cimpf:['fossi','fossi','fosse','fossimo','foste','fossero'],
+    cond:['sarei','saresti','sarebbe','saremmo','sareste','sarebbero'], imp:[null,'sii','sia','siamo','siate','siano'],
+    ger:'essendo', pp:'stato'}),
+  V('avere',2,'av',{tr:true,noPass:true,
+    pres:['ho','hai','ha','abbiamo','avete','hanno'], rem:['ebbi','avesti','ebbe','avemmo','aveste','ebbero'],
+    futStem:'avr', cpres:['abbia','abbia','abbia','abbiamo','abbiate','abbiano'],
+    imp:[null,'abbi','abbia','abbiamo','abbiate','abbiano']}),
+  V('fare',2,'fac',{tr:true,
+    pres:['faccio','fai','fa','facciamo','fate','fanno'], rem:['feci','facesti','fece','facemmo','faceste','fecero'],
+    futStem:'far', cpres:['faccia','faccia','faccia','facciamo','facciate','facciano'],
+    imp:[null,"fa'|fai|fa",'faccia','facciamo','fate','facciano'], pp:'fatto'}),
+  V('dire',2,'dic',{tr:true,
+    pres:['dico','dici','dice','diciamo','dite','dicono'], rem:['dissi','dicesti','disse','dicemmo','diceste','dissero'],
+    futStem:'dir', cpres:['dica','dica','dica','diciamo','diciate','dicano'],
+    imp:[null,"di'|dì",'dica','diciamo','dite','dicano'], pp:'detto'}),
+  V('andare',1,'and',{aux:'essere',
+    pres:['vado','vai','va','andiamo','andate','vanno'], futStem:'andr',
+    cpres:['vada','vada','vada','andiamo','andiate','vadano'], imp:[null,"va'|vai|va",'vada','andiamo','andate','vadano']}),
+  V('venire',3,'ven',{aux:'essere',
+    pres:['vengo','vieni','viene','veniamo','venite','vengono'], strong:['venn','ven'], futStem:'verr',
+    cpres:['venga','venga','venga','veniamo','veniate','vengano'], imp:[null,'vieni','venga','veniamo','venite','vengano'], pp:'venuto'}),
+  V('stare',1,'st',{aux:'essere',
+    pres:['sto','stai','sta','stiamo','state','stanno'], rem:['stetti','stesti','stette','stemmo','steste','stettero'],
+    futStem:'star', cpres:['stia','stia','stia','stiamo','stiate','stiano'],
+    cimpf:['stessi','stessi','stesse','stessimo','steste','stessero'], imp:[null,"sta'|stai|sta",'stia','stiamo','state','stiano']}),
+  V('dare',1,'d',{tr:true,
+    pres:['do','dai','dà','diamo','date','danno'], rem:['diedi|detti','desti','diede|dette','demmo','deste','diedero|dettero'],
+    futStem:'dar', cpres:['dia','dia','dia','diamo','diate','diano'],
+    cimpf:['dessi','dessi','desse','dessimo','deste','dessero'], imp:[null,"da'|dai|da",'dia','diamo','date','diano']}),
+  V('potere',2,'pot',{noImp:true,
+    pres:['posso','puoi','può','possiamo','potete','possono'], futStem:'potr',
+    cpres:['possa','possa','possa','possiamo','possiate','possano']}),
+  V('volere',2,'vol',{noImp:true,
+    pres:['voglio','vuoi','vuole','vogliamo','volete','vogliono'], strong:['voll','vol'], futStem:'vorr',
+    cpres:['voglia','voglia','voglia','vogliamo','vogliate','vogliano']}),
+  V('dovere',2,'dov',{noImp:true,
+    pres:['devo|debbo','devi','deve','dobbiamo','dovete','devono|debbono'], futStem:'dovr',
+    cpres:['debba|deva','debba|deva','debba|deva','dobbiamo','dobbiate','debbano|devano']}),
+  V('sapere',2,'sap',{tr:true,noPass:true,
+    pres:['so','sai','sa','sappiamo','sapete','sanno'], strong:['sepp','sap'], futStem:'sapr',
+    cpres:['sappia','sappia','sappia','sappiamo','sappiate','sappiano'], imp:[null,'sappi','sappia','sappiamo','sappiate','sappiano']}),
+  V('vedere',2,'ved',{tr:true, strong:['vid','ved'], futStem:'vedr', pp:'visto|veduto'}),
+  V('tenere',2,'ten',{tr:true,
+    pres:['tengo','tieni','tiene','teniamo','tenete','tengono'], strong:['tenn','ten'], futStem:'terr',
+    cpres:['tenga','tenga','tenga','teniamo','teniate','tengano'], imp:[null,'tieni','tenga','teniamo','tenete','tengano']}),
+  V('rimanere',2,'riman',{aux:'essere',
+    pres:['rimango','rimani','rimane','rimaniamo','rimanete','rimangono'], strong:['rimas','riman'], futStem:'rimarr',
+    cpres:['rimanga','rimanga','rimanga','rimaniamo','rimaniate','rimangano'],
+    imp:[null,'rimani','rimanga','rimaniamo','rimanete','rimangano'], pp:'rimasto'}),
+  V('uscire',3,'usc',{aux:'essere',
+    pres:['esco','esci','esce','usciamo','uscite','escono'], cpres:['esca','esca','esca','usciamo','usciate','escano'],
+    imp:[null,'esci','esca','usciamo','uscite','escano']}),
+  V('bere',2,'bev',{tr:true, rem:['bevvi|bevetti','bevesti','bevve|bevette','bevemmo','beveste','bevvero|bevettero'], futStem:'berr'}),
+  V('tradurre',2,'traduc',{tr:true, strong:['traduss','traduc'], futStem:'tradurr', pp:'tradotto'}),
+  V('scegliere',2,'scegli',{tr:true,
+    pres:['scelgo','scegli','sceglie','scegliamo','scegliete','scelgono'], strong:['scels','scegli'],
+    cpres:['scelga','scelga','scelga','scegliamo','scegliate','scelgano'], imp:[null,'scegli','scelga','scegliamo','scegliete','scelgano'], pp:'scelto'}),
+  V('leggere',2,'legg',{tr:true, strong:['less','legg'], pp:'letto'}),
+  V('scrivere',2,'scriv',{tr:true, strong:['scriss','scriv'], pp:'scritto'}),
+  V('prendere',2,'prend',{tr:true, strong:['pres','prend'], pp:'preso'}),
+  V('mettere',2,'mett',{tr:true, strong:['mis','mett'], pp:'messo'}),
+  V('chiudere',2,'chiud',{tr:true, strong:['chius','chiud'], pp:'chiuso'}),
+  V('vincere',2,'vinc',{tr:true, strong:['vins','vinc'], pp:'vinto'}),
+  V('perdere',2,'perd',{tr:true,
+    rem:['persi|perdei|perdetti','perdesti','perse|perdé|perdette','perdemmo','perdeste','persero|perderono|perdettero'], pp:'perso|perduto'}),
+  V('conoscere',2,'conosc',{tr:true, strong:['conobb','conosc'], pp:'conosciuto'}),
+  V('rispondere',2,'rispond',{strong:['rispos','rispond'], pp:'risposto'}),
+  V('cadere',2,'cad',{aux:'essere', strong:['cadd','cad'], futStem:'cadr'}),
+  V('nascere',2,'nasc',{aux:'essere', strong:['nacqu','nasc'], pp:'nato'}),
+
+  /* ---- regolari in -are ---- */
+  V('amare',1,'am',{tr:true}), V('lodare',1,'lod',{tr:true}), V('chiamare',1,'chiam',{tr:true}),
+  V('cercare',1,'cerc',{tr:true}), V('pagare',1,'pag',{tr:true}), V('mangiare',1,'mangi',{tr:true}),
+  V('studiare',1,'studi',{tr:true}), V('ascoltare',1,'ascolt',{tr:true}), V('guardare',1,'guard',{tr:true}),
+  V('portare',1,'port',{tr:true}), V('aiutare',1,'aiut',{tr:true}), V('salutare',1,'salut',{tr:true}),
+  V('giudicare',1,'giudic',{tr:true}), V('invitare',1,'invit',{tr:true}), V('premiare',1,'premi',{tr:true}),
+  V('osservare',1,'osserv',{tr:true}), V('comprare',1,'compr',{tr:true}), V('accompagnare',1,'accompagn',{tr:true}),
+  V('lasciare',1,'lasci',{tr:true}), V('cantare',1,'cant',{tr:true}),
+  V('arrivare',1,'arriv',{aux:'essere'}), V('tornare',1,'torn',{aux:'essere'}), V('entrare',1,'entr',{aux:'essere'}),
+  V('restare',1,'rest',{aux:'essere'}), V('camminare',1,'cammin'), V('lavorare',1,'lavor'),
+  V('viaggiare',1,'viaggi'), V('parlare',1,'parl'),
+
+  /* ---- regolari in -ere ---- */
+  V('temere',2,'tem',{tr:true}), V('credere',2,'cred',{tr:true}), V('vendere',2,'vend',{tr:true}),
+  V('ricevere',2,'ricev',{tr:true}), V('ripetere',2,'ripet',{tr:true}),
+
+  /* ---- regolari in -ire ---- */
+  V('sentire',3,'sent',{tr:true}), V('servire',3,'serv',{tr:true}), V('aprire',3,'apr',{tr:true,pp:'aperto'}),
+  V('offrire',3,'offr',{tr:true,pp:'offerto'}), V('coprire',3,'copr',{tr:true,pp:'coperto'}),
+  V('dormire',3,'dorm'), V('partire',3,'part',{aux:'essere'}), V('fuggire',3,'fugg',{aux:'essere'}),
+  V('finire',3,'fin',{tr:true,isc:true}), V('capire',3,'cap',{tr:true,isc:true}), V('pulire',3,'pul',{tr:true,isc:true}),
+  V('preferire',3,'prefer',{tr:true,isc:true}), V('spedire',3,'sped',{tr:true,isc:true}), V('costruire',3,'costru',{tr:true,isc:true}),
+  V('colpire',3,'colp',{tr:true,isc:true}), V('punire',3,'pun',{tr:true,isc:true}), V('tradire',3,'trad',{tr:true,isc:true}),
+
+  /* ---- riflessivi e intransitivi pronominali ---- */
+  V('lavare',1,'lav',{refl:true}), V('alzare',1,'alz',{refl:true}), V('svegliare',1,'svegli',{refl:true}),
+  V('pettinare',1,'pettin',{refl:true}), V('fermare',1,'ferm',{refl:true}), V('vergognare',1,'vergogn',{refl:true}),
+  V('arrabbiare',1,'arrabbi',{refl:true}), V('annoiare',1,'annoi',{refl:true}), V('ricordare',1,'ricord',{refl:true}),
+  V('preoccupare',1,'preoccup',{refl:true}), V('lamentare',1,'lament',{refl:true}),
+  V('vestire',3,'vest',{refl:true}), V('divertire',3,'divert',{refl:true}), V('pentire',3,'pent',{refl:true}),
+  V('accorgere',2,'accorg',{refl:true, strong:['accors','accorg'], pp:'accorto'}),
+  V('sedere',2,'sed',{refl:true,
+    pres:['siedo|seggo','siedi','siede','sediamo','sedete','siedono|seggono'],
+    cpres:['sieda|segga','sieda|segga','sieda|segga','sediamo','sediate','siedano|seggano'],
+    imp:[null,'siedi','sieda','sediamo','sedete','siedano']})
+];
+
+function alts(s){ return s==null ? [] : String(s).split('|'); }
+function joinAre(stem, end){
+  const f = end[0];
+  if (f==='i' || f==='e'){
+    if (/[cg]$/.test(stem)) return stem+'h'+end;            // cerc-i -> cerchi
+    if (/[cg]i$/.test(stem)) return stem.slice(0,-1)+end;   // mangi-erò -> mangerò
+    if (/i$/.test(stem) && f==='i') return stem.slice(0,-1)+end; // studi-i -> studi
+  }
+  return stem+end;
+}
+function form(v, stem, end){ return v.conj===1 ? joinAre(stem,end) : stem+end; }
+
+function tables(v){
+  if (v._t) return v._t;
+  const E = END[v.conj], t = {};
+  for (const k of ['pres','impf','rem','fut','cpres','cimpf','cond','imp']){
+    if (v[k]) { t[k] = v[k]; continue; }
+    if ((k==='fut'||k==='cond') && v.futStem){ t[k] = (k==='fut'?FUT_SHORT:COND_SHORT).map(e=>v.futStem+e); continue; }
+    if (k==='rem' && v.strong){
+      const [s,w] = v.strong, x = {1:'a',2:'e',3:'i'}[v.conj];
+      t[k] = [s+'i', w+x+'sti', s+'e', w+x+'mmo', w+x+'ste', s+'ero']; continue;
+    }
+    const ends = (v.isc && ISC[k]) || E[k];
+    t[k] = ends.map(e => e==null ? null : alts(e).map(a=>form(v,v.stem,a)).join('|'));
+  }
+  t.ger = v.ger || form(v, v.stem, E.ger);
+  t.pp  = v.pp  || form(v, v.stem, E.pp);
+  v._t = t; return t;
+}
+const byInf = inf => VERBS.find(v=>v.inf===inf && !v.refl);
+const AUX = {essere:tables(byInf('essere')), avere:tables(byInf('avere')), venire:tables(byInf('venire'))};
+
+function agree(pp, n){ // n: 0 sing, 1 plur, 2 qualsiasi
+  const b = pp.slice(0,-1);
+  return n===0 ? [b+'o',b+'a'] : n===1 ? [b+'i',b+'e'] : [b+'o',b+'a',b+'i',b+'e'];
+}
+function agreeStato(pp, n){
+  const ends = n===0 ? ['o','a'] : n===1 ? ['i','e'] : ['o','a','i','e'];
+  return ends.map(e => 'stat'+e+' '+pp.slice(0,-1)+e);
+}
+function cross(a,b){ const o=[]; for(const x of a) for(const y of b) o.push(x+' '+y); return o; }
+
+const SIMPLE = [['indicativo','presente','pres'],['indicativo','imperfetto','impf'],['indicativo','passato remoto','rem'],['indicativo','futuro semplice','fut'],
+                ['congiuntivo','presente','cpres'],['congiuntivo','imperfetto','cimpf'],['condizionale','presente','cond']];
+const COMP   = [['indicativo','passato prossimo','pres'],['indicativo','trapassato prossimo','impf'],['indicativo','trapassato remoto','rem'],['indicativo','futuro anteriore','fut'],
+                ['congiuntivo','passato','cpres'],['congiuntivo','trapassato','cimpf'],['condizionale','passato','cond']];
+
+function cells(v){
+  if (v._c) return v._c;
+  const T = tables(v), out = [];
+  const aux = v.refl ? 'essere' : v.aux;
+  const AT = AUX[aux], ET = AUX.essere, VT = AUX.venire;
+  const pps = alts(T.pp);
+  const canPass = v.tr && !v.noPass && !v.refl;
+  const add = (mood,tense,person,voice,display,accept) =>
+    out.push({verb:v, mood, tense, person, voice, display, accept:[...new Set(display.concat(accept))]});
+  const rp = (p,arr) => v.refl ? arr.map(f=>PRON_RIFL[p]+' '+f) : arr;
+
+  for (let p=0; p<6; p++){
+    const n = p<3 ? 0 : 1;
+    for (const [m,tn,k] of SIMPLE){
+      const f = alts(T[k][p]);
+      add(m,tn,p,'attiva', rp(p,[f[0]]), rp(p,f));
+      if (canPass){
+        const e  = cross(alts(ET[k][p]), pps.flatMap(x=>agree(x,n)));
+        const ve = cross(alts(VT[k][p]), pps.flatMap(x=>agree(x,n)));
+        add(m,tn,p,'passiva', cross([alts(ET[k][p])[0]], agree(pps[0],n)), e.concat(ve));
+      }
+    }
+    for (const [m,tn,k] of COMP){
+      const a = alts(AT[k][p]);
+      const parts = aux==='essere' ? pps.flatMap(x=>agree(x,n)) : pps;
+      const dispParts = aux==='essere' ? agree(pps[0],n) : [pps[0]];
+      add(m,tn,p,'attiva', rp(p,cross([a[0]],dispParts)), rp(p,cross(a,parts)));
+      if (canPass){
+        const ea = alts(ET[k][p]);
+        add(m,tn,p,'passiva', cross([ea[0]], agreeStato(pps[0],n)), cross(ea, pps.flatMap(x=>agreeStato(x,n))));
+      }
+    }
+  }
+  if (!v.noImp){
+    for (const p of [1,2,3,4,5]){
+      let f = alts(T.imp[p]);
+      if (v.refl){
+        const suf = {1:'ti',3:'ci',4:'vi'}[p];
+        f = suf ? f.map(x=>x+suf) : f.map(x=>'si '+x);
+      }
+      add('imperativo','presente',p,'attiva',[f[0]],f);
+    }
+  }
+  const pAny = pps.flatMap(x=>agree(x,2));
+  const infP = v.refl ? v.inf.slice(0,-1)+'si' : v.inf;
+  add('infinito','presente',null,'attiva',[infP],[infP]);
+  if (v.refl){
+    add('infinito','passato',null,'attiva', cross(['essersi'],agree(pps[0],2)), cross(['essersi'],pAny));
+    add('gerundio','presente',null,'attiva', [T.ger+'si'], [T.ger+'si']);
+    add('gerundio','passato',null,'attiva', cross(['essendosi'],agree(pps[0],2)), cross(['essendosi'],pAny));
+  } else {
+    const ess = aux==='essere';
+    add('infinito','passato',null,'attiva', cross([ess?'essere':'avere'], ess?agree(pps[0],2):[pps[0]]), cross([ess?'essere':'avere'], ess?pAny:pps));
+    add('gerundio','presente',null,'attiva', [T.ger], [T.ger]);
+    add('gerundio','passato',null,'attiva', cross([ess?'essendo':'avendo'], ess?agree(pps[0],2):[pps[0]]), cross([ess?'essendo':'avendo'], ess?pAny:pps));
+    add('participio','passato',null,'attiva', [pps[0]], pAny);
+    if (canPass){
+      const sAny = pps.flatMap(x=>agreeStato(x,2));
+      add('infinito','presente',null,'passiva', cross(['essere'],agree(pps[0],2)), cross(['essere'],pAny));
+      add('infinito','passato',null,'passiva', cross(['essere'],agreeStato(pps[0],2)), cross(['essere'],sAny));
+      add('gerundio','presente',null,'passiva', cross(['essendo'],agree(pps[0],2)), cross(['essendo'],pAny));
+      add('gerundio','passato',null,'passiva', cross(['essendo'],agreeStato(pps[0],2)), cross(['essendo'],sAny));
+    }
+  }
+  v._c = out; return out;
+}
+
+/* =====================================================================
+   NORMALIZZAZIONE E CORREZIONE
+   ===================================================================== */
+const STRIP = new Set(['che','io','tu','lui','lei','egli','ella','esso','essa','noi','voi','loro','essi','esse']);
+function normAnswer(s){
+  s = (s||'').toLowerCase().replace(/[’‘`´]/g,"'");
+  s = s.replace(/[()\[\]{}.,;:!?"«»\/\\_\-]/g,' ');
+  s = s.replace(/é/g,'è').replace(/á/g,'à').replace(/í/g,'ì').replace(/ó/g,'ò').replace(/ú/g,'ù');
+  s = s.replace(/([aeiou])'(?=\s|$)/g,(m,c)=>({a:'à',e:'è',i:'ì',o:'ò',u:'ù'})[c]);
+  s = s.replace(/(^|\s)([mtscv])'\s*/g,'$1$2i ');
+  let w = s.replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+  w = w.map(x => x==='aver' ? 'avere' : x==='esser' ? 'essere' : x);
+  while (w.length>1 && STRIP.has(w[0])) w.shift();
+  return w.join(' ');
+}
+function acceptSet(c){ if(!c._n) c._n = new Set(c.accept.map(normAnswer)); return c._n; }
+
+function normAn(s){
+  s = (s||'').toLowerCase().replace(/[ªº°]/g,'a ').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return ' '+s.replace(/[^a-z0-9]+/g,' ').trim()+' ';
+}
+function parseAnalysis(raw){
+  const t = normAn(raw);
+  const MOODS = [['indicativo',/\bindic/],['congiuntivo',/\bcongiunt|\bcong\b/],['condizionale',/\bcondiz|\bcond\b/],
+                 ['imperativo',/\bimperat/],['infinito',/\binfin/],['gerundio',/\bgerund/],['participio',/\bparticip|\bpart\b/]];
+  const found = MOODS.filter(([,r])=>r.test(t)).map(x=>x[0]);
+  const mood = found.length===1 ? found[0] : (found.length ? '??' : null);
+
+  let tense = null;
+  if (/\btrapass/.test(t)) tense = /\bpross/.test(t) ? 'trapassato prossimo' : /\brem/.test(t) ? 'trapassato remoto' : 'trapassato';
+  else if (/\bpass(?!iv)/.test(t)) tense = /\bpross/.test(t) ? 'passato prossimo' : /\brem/.test(t) ? 'passato remoto' : 'passato';
+  else if (/\bfut/.test(t)) tense = /\bant/.test(t) ? 'futuro anteriore' : 'futuro semplice';
+  else if (/\bimperf/.test(t)) tense = 'imperfetto';
+  else if (/\bpres/.test(t)) tense = 'presente';
+
+  let person = null, ord = null, num = null;
+  const c = t.match(/\b([123])a?\s?(singolare|sing|sg|s|plurale|plur|pl|p)\b/);
+  if (c){ ord = +c[1]-1; num = c[2][0]==='s' ? 0 : 1; }
+  else {
+    const ords = [];
+    if (/\b(prima|primo|1a?)\b/.test(t)) ords.push(0);
+    if (/\b(seconda|secondo|2a?)\b/.test(t)) ords.push(1);
+    if (/\b(terza|terzo|3a?)\b/.test(t)) ords.push(2);
+    if (ords.length===1) ord = ords[0]; else if (ords.length>1) ord = -99;
+    const sg = /\bsing|\bsg\b/.test(t), pl = /\bplur|\bpl\b/.test(t);
+    if (sg && !pl) num = 0; else if (pl && !sg) num = 1;
+  }
+  if (ord!=null && ord>=0 && num!=null) person = ord + 3*num;
+  else if (ord==null){
+    if (/\bio\b/.test(t)) person = 0;
+    else if (/\btu\b/.test(t)) person = 1;
+    else if (/\b(lui|lei|egli|ella|esso|essa)\b/.test(t)) person = 2;
+    else if (/\bnoi\b/.test(t)) person = 3;
+    else if (/\bvoi\b/.test(t)) person = 4;
+    else if (/\b(loro|essi|esse)\b/.test(t)) person = 5;
+  }
+  const voice = /\bpassiv/.test(t) ? 'passiva' : /\battiv/.test(t) ? 'attiva' : null;
+  return {mood, tense, person, voice};
+}
+const voiceNeeded = v => v.tr && !v.refl;
+
+function evalAnalysis(card, raw){
+  const pa = parseAnalysis(raw);
+  let best = null;
+  for (const c of card.candidates){
+    const r = {};
+    r.mood = pa.mood===c.mood;
+    r.tense = c.mood==='imperativo' ? (pa.tense===null || pa.tense==='presente') : pa.tense===c.tense;
+    if (c.person!=null) r.person = pa.person===c.person;
+    if (c.mood!=='participio'){
+      if (c.voice==='passiva') r.voice = pa.voice==='passiva';
+      else if (voiceNeeded(c.verb)) r.voice = pa.voice==='attiva';
+      else if (pa.voice==='passiva') r.voice = false;
+    }
+    const vals = Object.values(r), score = vals.filter(Boolean).length/vals.length;
+    if (!best || score>best.score) best = {score, r, c};
+  }
+  return {ok: best.score===1, parts: best.r, cand: best.c};
+}
+
+function describe(c){
+  let s = c.mood + ' ' + c.tense;
+  if (c.person!=null) s += ', ' + PERS[c.person];
+  if (c.mood!=='participio'){
+    if (c.voice==='passiva') s += ', diatesi passiva';
+    else if (voiceNeeded(c.verb)) s += ', diatesi attiva';
+  }
+  return s;
+}
+
+/* =====================================================================
+   GENERAZIONE DELLE CARTE
+   ===================================================================== */
+const CATS = [
+  ['indicativo','presente',3],['indicativo','imperfetto',3],['indicativo','passato remoto',3],['indicativo','futuro semplice',3],
+  ['indicativo','passato prossimo',3],['indicativo','trapassato prossimo',3],['indicativo','trapassato remoto',2],['indicativo','futuro anteriore',3],
+  ['congiuntivo','presente',3],['congiuntivo','imperfetto',3],['congiuntivo','passato',3],['congiuntivo','trapassato',3],
+  ['condizionale','presente',3],['condizionale','passato',3],
+  ['imperativo','presente',2],
+  ['infinito','presente',1],['infinito','passato',1],['gerundio','presente',1],['gerundio','passato',1],['participio','passato',1]
+];
+const rnd = n => Math.floor(Math.random()*n);
+function pickW(list){
+  const tot = list.reduce((s,x)=>s+x[2],0); let r = Math.random()*tot;
+  for (const x of list){ r -= x[2]; if (r<0) return x; }
+  return list[list.length-1];
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function makeCard(type, used){
+  for (let tries=0; tries<500; tries++){
+    const v = VERBS[rnd(VERBS.length)];
+    const [m,tn] = pickW(CATS);
+    let pool = cells(v).filter(c=>c.mood===m && c.tense===tn);
+    if (m==='imperativo') pool = pool.filter(c=>[1,3,4].includes(c.person));
+    if (m==='infinito' && tn==='presente') pool = pool.filter(c=>c.voice==='passiva'); // l'infinito presente attivo è il verbo stesso
+    if (!pool.length) continue;
+    const pas = pool.filter(c=>c.voice==='passiva'), act = pool.filter(c=>c.voice==='attiva');
+    let src = (pas.length && (Math.random()<0.35 || !act.length)) ? pas : act;
+    const c = src[rnd(src.length)];
+    const key = type+'|'+v.name+'|'+m+'|'+tn+'|'+c.person+'|'+c.voice;
+    if (used.has(key)) continue;
+    used.add(key);
+    const card = {type, cell:c};
+    if (type==='an'){
+      card.shown = c.display[rnd(c.display.length)];
+      const ns = normAnswer(card.shown);
+      card.candidates = cells(v).filter(x => acceptSet(x).has(ns));
+    }
+    return card;
+  }
+  return null;
+}
+function makeDeck(n){
+  const types = shuffle(Array.from({length:n},(_,i)=> i<n/2 ? 'an' : 'co'));
+  const used = new Set(), deck = [];
+  for (const t of types){ const c = makeCard(t, used); if (c) deck.push(c); }
+  return deck;
+}
+
+/* =====================================================================
+   INTERFACCIA
+   ===================================================================== */
+if (typeof document !== 'undefined'){
+  const N = 200;
+  let cards = [], state = [], idx = 0;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[ch]);
+  const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+
+  function newDeck(){
+    cards = makeDeck(N);
+    state = cards.map(()=>({text:'', status:null, fb:''}));
+    idx = 0;
+    $('summary').hidden = true; $('quiz').hidden = false;
+    render();
+  }
+
+  function render(){
+    const card = cards[idx], c = card.cell, st = state[idx];
+    $('counter').textContent = `Carta ${idx+1} di ${cards.length}`;
+    $('bar').style.width = ((idx+1)/cards.length*100)+'%';
+    const tag = $('tag'), pr = $('prompt'), chips = $('chips');
+    if (card.type==='an'){
+      tag.className='tag an'; tag.textContent='Analizza';
+      $('instr').textContent = 'Analizza la voce verbale: modo, tempo, persona e, per i verbi transitivi, diatesi.';
+      pr.className='prompt'; pr.textContent = card.shown;
+      chips.innerHTML='';
+      $('answer').placeholder = 'es. congiuntivo imperfetto, 1ª persona singolare, attiva';
+      $('note').textContent = 'Se la voce ha più analisi possibili, ne basta una corretta.';
+    } else {
+      tag.className='tag co'; tag.textContent='Coniuga';
+      $('instr').textContent = 'Scrivi la voce verbale richiesta.';
+      pr.className='prompt verb'; pr.textContent = c.verb.name;
+      let h = `<span class="chip"><b>Modo</b>${c.mood}</span><span class="chip"><b>Tempo</b>${c.tense}</span>`;
+      if (c.person!=null) h += `<span class="chip"><b>Persona</b>${PERS[c.person]}</span>`;
+      if (voiceNeeded(c.verb) && c.mood!=='participio') h += `<span class="chip"><b>Diatesi</b>${c.voice}</span>`;
+      chips.innerHTML = h;
+      $('answer').placeholder = 'Scrivi qui la voce verbale';
+      $('note').textContent = c.mood==='congiuntivo'
+        ? 'Puoi omettere il pronome personale e il «che».'
+        : (c.person!=null ? 'Puoi omettere il pronome personale.' : '');
+    }
+    $('answer').value = st.text;
+    const fb = $('feedback');
+    fb.className = 'feedback' + (st.status==='ok' ? ' ok' : st.status==='ko' ? ' ko' : '');
+    fb.innerHTML = st.fb;
+    $('btnPrev').disabled = idx===0;
+    $('btnNext').textContent = idx===cards.length-1 ? 'Fine ▶' : 'Avanti ▶';
+    setTimeout(()=>$('answer').focus(), 0);
+  }
+
+  function check(){
+    const card = cards[idx], c = card.cell, st = state[idx];
+    const txt = $('answer').value;
+    const fb = $('feedback');
+    if (!txt.trim()){
+      fb.className='feedback info';
+      fb.innerHTML = 'Scrivi una risposta prima di verificare, oppure premi «Avanti» per saltare la carta.';
+      return;
+    }
+    st.text = txt;
+    if (card.type==='co'){
+      const ok = acceptSet(c).has(normAnswer(txt));
+      st.status = ok ? 'ok' : 'ko';
+      const altre = c.accept.filter(a=>a!==c.display[0]);
+      let altTxt = '';
+      if (c.voice==='passiva' && c.tense && !['passato prossimo','trapassato prossimo','trapassato remoto','futuro anteriore','passato','trapassato'].includes(c.tense) && c.person!=null){
+        const ven = altre.find(a=>/^(vien|veng|ven|verr|vann)/.test(a.replace(/^(mi|ti|si|ci|vi) /,'')));
+        if (ven) altTxt = ` (anche: <i>${esc(ven)}</i>)`;
+      }
+      st.fb = ok
+        ? `<h3>Esatto!</h3><div class="sol"><b>${esc(c.display[0])}</b>${altTxt}</div>`
+        : `<h3>Non ancora</h3><div>Hai scritto: <i>${esc(txt)}</i></div><div class="sol">Risposta corretta: <b>${esc(c.display[0])}</b>${altTxt}</div>`;
+    } else {
+      const res = evalAnalysis(card, txt);
+      st.status = res.ok ? 'ok' : 'ko';
+      const all = [...new Set(card.candidates.map(describe))];
+      const sol = `<div class="sol">Voce del verbo <b>${esc(c.verb.name)}</b>: ${all.map(esc).join(' <i>oppure</i> ')}</div>`;
+      if (res.ok){
+        st.fb = `<h3>Esatto!</h3>${sol}`;
+      } else {
+        const L = {mood:'Modo', tense:'Tempo', person:'Persona', voice:'Diatesi'};
+        const rows = Object.entries(res.parts).map(([k,v])=>`<li>${L[k]}: <span class="${v?'y':'n'}">${v?'✓ giusto':'✗ da correggere'}</span></li>`).join('');
+        st.fb = `<h3>Non ancora</h3><ul>${rows}</ul>${sol}`;
+      }
+    }
+    render();
+  }
+
+  function go(d){
+    state[idx].text = $('answer').value;
+    const n = idx + d;
+    if (n<0) return;
+    if (n>=cards.length){ showSummary(); return; }
+    idx = n; render();
+  }
+
+  function catLabel(m,t){ return cap(m)+' · '+t; }
+  function showSummary(){
+    state[idx].text = $('answer').value;
+    const tot = cards.length;
+    let ok=0, ko=0, sk=0;
+    const byType = {an:{t:0,ok:0,ko:0,sk:0}, co:{t:0,ok:0,ko:0,sk:0}};
+    const byMood = {}, byCat = {};
+    const errs = [];
+    cards.forEach((card,i)=>{
+      const s = state[i].status, k = s==='ok'?'ok':s==='ko'?'ko':'sk';
+      if (k==='ok') ok++; else if (k==='ko') ko++; else sk++;
+      const m = card.cell.mood, ck = m+'|'+card.cell.tense;
+      for (const [obj,key] of [[byType,card.type],[byMood,m],[byCat,ck]]){
+        obj[key] = obj[key] || {t:0,ok:0,ko:0,sk:0};
+        obj[key].t++; obj[key][k]++;
+      }
+      if (k!=='ok') errs.push({i, card, given: state[i].text, k});
+    });
+    const pct = o => o.t ? Math.round(o.ok/o.t*100) : 0;
+    const badge = o => pct(o)>=70 ? '<span class="badge g">Chiaro</span>' : '<span class="badge r">Da ripassare</span>';
+    const row = (label,o) => `<tr><td>${label}</td><td>${o.t}</td><td>${o.ok}</td><td>${o.ko}</td><td>${o.sk}</td><td><span class="pbar"><i style="width:${pct(o)}%"></i></span>${pct(o)}%</td><td>${badge(o)}</td></tr>`;
+    const head = first => `<tr><th>${first}</th><th>Carte</th><th>Giuste</th><th>Sbagliate</th><th>Saltate</th><th>%</th><th>Giudizio</th></tr>`;
+
+    const moodOrder = ['indicativo','congiuntivo','condizionale','imperativo','infinito','gerundio','participio'];
+    const catOrder = CATS.map(c=>c[0]+'|'+c[1]).filter(k=>byCat[k]);
+    const catList = catOrder.map(k=>({k, o:byCat[k], label:catLabel(...k.split('|'))}));
+    const clear = catList.filter(x=>x.o.t>=2 && pct(x.o)>=70).sort((a,b)=>pct(b.o)-pct(a.o));
+    const weak  = catList.filter(x=>pct(x.o)<70).sort((a,b)=>pct(a.o)-pct(b.o));
+    const li = arr => arr.length ? arr.map(x=>`<li>${x.label} <small>(${pct(x.o)}%)</small></li>`).join('') : '<li><i>nessuno</i></li>';
+
+    const errHtml = errs.length ? `<ol class="errs">${errs.map(e=>{
+        const c = e.card.cell;
+        const q = e.card.type==='an' ? `Analizza <b>${esc(e.card.shown)}</b>` : `Coniuga <b>${esc(c.verb.name.toUpperCase())}</b> (${esc(describe(c))})`;
+        const sol = e.card.type==='an' ? [...new Set(e.card.candidates.map(describe))].map(esc).join(' oppure ') : `<b>${esc(c.display[0])}</b>`;
+        const given = e.k==='sk' ? '<span class="given">saltata</span>' : `<span class="given">${esc(e.given)}</span>`;
+        return `<li>Carta ${e.i+1}: ${q} — tua risposta: ${given} — soluzione: ${sol}</li>`;
+      }).join('')}</ol>` : '<p>Nessun errore. Ottimo lavoro!</p>';
+
+    $('summary').innerHTML = `
+      <h2>Riepilogo</h2>
+      <div class="big">
+        <div class="g"><div class="num">${ok}</div><div class="lab">giuste su ${tot}</div></div>
+        <div class="r"><div class="num">${ko}</div><div class="lab">sbagliate</div></div>
+        <div class="s"><div class="num">${sk}</div><div class="lab">saltate</div></div>
+      </div>
+      <div class="verdict">
+        <div class="vg"><h4>Modi e tempi più chiari</h4><ul>${li(clear.slice(0,6))}</ul></div>
+        <div class="vr"><h4>Da ripassare</h4><ul>${li(weak)}</ul></div>
+      </div>
+      <h3>Per tipo di esercizio</h3>
+      <div class="tablewrap"><table>${head('Esercizio')}${row('Voci analizzate',byType.an)}${row('Voci coniugate',byType.co)}</table></div>
+      <h3>Per modo</h3>
+      <div class="tablewrap"><table>${head('Modo')}${moodOrder.filter(m=>byMood[m]).map(m=>row(cap(m),byMood[m])).join('')}</table></div>
+      <h3>Per modo e tempo</h3>
+      <div class="tablewrap"><table>${head('Modo e tempo')}${catList.map(x=>row(x.label,x.o)).join('')}</table></div>
+      <p class="note">«Chiaro» = almeno il 70% di risposte giuste. Le carte saltate contano come da ripassare.</p>
+      <details class="help"><summary>Rivedi errori e carte saltate (${errs.length})</summary>${errHtml}</details>
+      <div class="sumbtns">
+        <button id="btnBack">◀ Torna alle carte</button>
+        <button id="btnNew" class="primary">Nuova serie di verbi</button>
+        <button id="btnPrint">Stampa il riepilogo</button>
+      </div>`;
+    $('quiz').hidden = true; $('summary').hidden = false;
+    window.scrollTo(0,0);
+    $('btnBack').onclick = ()=>{ $('summary').hidden = true; $('quiz').hidden = false; render(); };
+    $('btnNew').onclick = ()=>{ if (confirm('Vuoi iniziare una nuova serie? Le risposte attuali andranno perse.')) newDeck(); };
+    $('btnPrint').onclick = ()=>window.print();
+  }
+
+  // accenti
+  const acc = $('accents');
+  ['à','è','é','ì','ò','ù'].forEach(ch=>{
+    const b = document.createElement('button'); b.type='button'; b.textContent=ch;
+    b.onclick = ()=>{
+      const inp = $('answer'), s = inp.selectionStart ?? inp.value.length, e = inp.selectionEnd ?? inp.value.length;
+      inp.value = inp.value.slice(0,s)+ch+inp.value.slice(e);
+      inp.focus(); inp.setSelectionRange(s+1,s+1);
+    };
+    acc.appendChild(b);
+  });
+
+  $('btnCheck').onclick = check;
+  $('btnNext').onclick = ()=>go(1);
+  $('btnPrev').onclick = ()=>go(-1);
+  $('btnEnd').onclick = showSummary;
+  $('answer').addEventListener('keydown', e=>{
+    if (e.key==='Enter'){
+      e.preventDefault();
+      const st = state[idx];
+      if (st.status && st.text===$('answer').value) go(1); else check();
+    }
+  });
+
+  newDeck();
+}
+</script>
+</body>
+</html>
